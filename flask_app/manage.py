@@ -1,51 +1,94 @@
-from flask import Flask, url_for, redirect, render_template, request
-from flask_bootstrap import Bootstrap
-
+from flask import Flask, render_template, request, redirect, url_for
 import mysql.connector as sql
 
 app = Flask(__name__)
 Bootstrap(app)
 
+# Connect to MySQL database
+db = sql.connect(
+    host="localhost",
+    user="flask",
+    password="ubuntu",
+    database="flask_db"
+)
+
+# Create employees table if it does not exist
+cursor = db.cursor()
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS employees (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL UNIQUE,
+        department VARCHAR(255) NOT NULL,
+        position VARCHAR(255) NOT NULL
+    )
+''')
+db.commit()
+
+# Close the cursor and the database connection
+cursor.close()
+db.close()
+
+# Home page
 @app.route('/')
 def home():
-   return render_template('home.html')
+    return render_template('home.html')
 
-@app.route('/enternew')
-def new_employee():
-   return render_template('registration.html')
+# Employee registration page
+@app.route('/registration', methods=['GET', 'POST'])
+def registration():
+    if request.method == 'POST':
+        # Get the form data
+        name = request.form['name']
+        email = request.form['email']
+        department = request.form['department']
+        position = request.form['position']
 
+        # Connect to MySQL database
+        db = sql.connect(
+            host="localhost",
+            user="your-username",
+            password="your-password",
+            database="employees_db"
+        )
+        cursor = db.cursor()
 
-@app.route('/addrec', methods=['POST'])
-def addrec():
-   try:
-      name = request.form['name']
-      gender = request.form['gender']
-      phone = request.form['phone']
-      bdate = request.form['bdate']
-      
-      with sql.connect(host="localhost", user="flask", password="ubuntu", database="flask_db") as con:
-         cur = con.cursor()
-         cmd = "INSERT INTO Employee (EmpName, EmpGender, EmpPhone, EmpBDate) VALUES (%s, %s, %s, %s)"
-         cur.execute(cmd, (name, gender, phone, bdate))
-         
-         con.commit()
-         msg = "Record successfully added"
-   except:
-      con.rollback()
-      msg = "Error in insert operation"
-   finally:
-      con.close()
-      return render_template("output.html", msg=msg)
+        # Insert the employee data into the database
+        cursor.execute('''
+            INSERT INTO employees (name, email, department, position)
+            VALUES (%s, %s, %s, %s)
+        ''', (name, email, department, position))
+        db.commit()
 
+        # Close the cursor and the database connection
+        cursor.close()
+        db.close()
 
-@app.route('/list')
-def list_employees():
-   with sql.connect(host="localhost", user="flask", password="ubuntu", database="flask_db") as conn:  
-      cur = conn.cursor()
-      cur.execute("SELECT * FROM Employee")
-      rows = cur.fetchall()
+        return redirect(url_for('information'))
 
-   return render_template("information.html", rows=rows)
+    return render_template('registration.html')
+
+# Employee information page
+@app.route('/information')
+def information():
+    # Connect to MySQL database
+    db = sql.connect(
+        host="localhost",
+        user="your-username",
+        password="your-password",
+        database="employees_db"
+    )
+    cursor = db.cursor()
+
+    # Get all employees' information from the database
+    cursor.execute('SELECT * FROM employees')
+    employees = cursor.fetchall()
+
+    # Close the cursor and the database connection
+    cursor.close()
+    db.close()
+
+    return render_template('information.html', employees=employees)
 
 if __name__ == '__main__':
-   app.run() 
+    app.run(debug=True)
