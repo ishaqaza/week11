@@ -7,9 +7,9 @@ app.config['SECRET_KEY'] = 'your-secret-key'
 # Connect to MySQL database
 db = sql.connect(
     host="localhost",
-    user="your-username",
-    password="your-password",
-    database="employees_db"
+    user="flask",
+    password="ubuntu",
+    database="flask_db"
 )
 
 # Create employees table if it does not exist
