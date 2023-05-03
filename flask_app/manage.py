@@ -47,9 +47,9 @@ def registration():
         # Connect to MySQL database
         db = sql.connect(
             host="localhost",
-            user="your-username",
-            password="your-password",
-            database="employees_db"
+            user="flask",
+            password="ubuntu",
+            database="flask_db"
         )
         cursor = db.cursor()
 
@@ -74,9 +74,9 @@ def information():
     # Connect to MySQL database
     db = sql.connect(
         host="localhost",
-        user="your-username",
-        password="your-password",
-        database="employees_db"
+        user="flask",
+        password="ubuntu",
+        database="flask_db"
     )
     cursor = db.cursor()
 
